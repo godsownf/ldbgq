@@ -1,20 +1,23 @@
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Database, FileCode } from "lucide-react";
 import LdbUploader from "./components/LdbUploader";
 import LdbViewer from "./components/LdbViewer";
 import { LdbEntry } from "./types";
 
+// Simple Tab system using React state
+type Tab = "upload" | "view";
+
 function App() {
   const [entries, setEntries] = useState<LdbEntry[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [fileSize, setFileSize] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<Tab>("upload");
 
   const handleFileLoaded = (data: LdbEntry[], name: string, size: number) => {
     setEntries(data);
     setFileName(name);
     setFileSize(size);
+    setActiveTab("view"); // Switch to view automatically after upload
   };
 
   return (
@@ -38,35 +41,49 @@ function App() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="upload" className="space-y-6">
-          <TabsList className="bg-zinc-900 border border-zinc-800 p-1 w-full md:w-auto">
-            <TabsTrigger value="upload" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-400">
-              <FileCode className="w-4 h-4 mr-2" />
+        {/* Tabs */}
+        <div className="space-y-6">
+          <div className="flex space-x-2 bg-zinc-900 border border-zinc-800 p-1 rounded">
+            <button
+              onClick={() => setActiveTab("upload")}
+              className={`flex items-center px-3 py-1 text-sm rounded ${
+                activeTab === "upload"
+                  ? "bg-zinc-800 text-emerald-400"
+                  : "text-zinc-400"
+              }`}
+            >
+              <FileCode className="w-4 h-4 mr-1" />
               Load File
-            </TabsTrigger>
-            <TabsTrigger value="view" disabled={entries.length === 0} className="data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-400 disabled:opacity-50">
-              <Database className="w-4 h-4 mr-2" />
+            </button>
+            <button
+              onClick={() => setActiveTab("view")}
+              disabled={entries.length === 0}
+              className={`flex items-center px-3 py-1 text-sm rounded ${
+                activeTab === "view"
+                  ? "bg-zinc-800 text-emerald-400"
+                  : "text-zinc-400"
+              } disabled:opacity-50`}
+            >
+              <Database className="w-4 h-4 mr-1" />
               Data View ({entries.length})
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          </div>
 
-          <TabsContent value="upload">
-            <Card className="bg-zinc-900 border-zinc-800 shadow-none">
-              <CardHeader>
-                <CardTitle className="text-zinc-100">Import .ldb File</CardTitle>
-                <CardDescription className="text-zinc-400">
-                  This tool uses a "Text Island" algorithm to extract every readable string. 
-                  It automatically switches between UTF-8 and Latin-1 decoding to ensure no data is lost.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LdbUploader onFileLoaded={handleFileLoaded} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {/* Tab Content */}
+          {activeTab === "upload" && (
+            <div className="bg-zinc-900 border border-zinc-800 rounded p-4">
+              <div className="mb-2 text-zinc-100 font-semibold text-lg">
+                Import .ldb File
+              </div>
+              <div className="text-zinc-400 text-sm mb-4">
+                This tool uses a "Text Island" algorithm to extract every readable string.
+                It automatically switches between UTF-8 and Latin-1 decoding to ensure no data is lost.
+              </div>
+              <LdbUploader onFileLoaded={handleFileLoaded} />
+            </div>
+          )}
 
-          <TabsContent value="view">
+          {activeTab === "view" && (
             <div className="space-y-4">
               {fileName && (
                 <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-lg">
@@ -84,14 +101,12 @@ function App() {
                 </div>
               )}
 
-              <Card className="bg-zinc-900 border-zinc-800 shadow-none min-h-[500px]">
-                <CardContent className="p-0">
-                  <LdbViewer entries={entries} />
-                </CardContent>
-              </Card>
+              <div className="bg-zinc-900 border border-zinc-800 rounded p-0 min-h-[500px]">
+                <LdbViewer entries={entries} />
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </div>
   );
