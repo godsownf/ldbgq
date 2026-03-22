@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
-import { Button } from "./components/ui/button";
+import { Button } from "@/components/ui/button";
 import { UploadCloud, FileText, XCircle } from "lucide-react";
-import { parseLdbFile } from "./utils/ldbParser";
-import { LdbEntry } from "./types";
+import { parseLdbFile } from "@/utils/ldbParser";
+import { LdbEntry } from "@/types";
 
 interface LdbUploaderProps {
   onFileLoaded: (entries: LdbEntry[], fileName: string, fileSize: number) => void;
