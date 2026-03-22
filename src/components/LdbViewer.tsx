@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Input } from "./components/ui/input";
-import { Button } from "./components/ui/button";
 import { Search, ChevronDown, ChevronRight, Copy, Check, Code } from "lucide-react";
-import { LdbEntry } from "./types";
+import { LdbEntry } from "../types";
 
 interface LdbViewerProps {
   entries: LdbEntry[];
@@ -14,13 +12,14 @@ export default function LdbViewer({ entries }: LdbViewerProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showHex, setShowHex] = useState(false);
 
-  const filteredEntries = entries.filter(entry =>
-    entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.rawHex.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEntries = entries.filter(
+    (entry) =>
+      entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.rawHex.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const toggleRow = (id: string) => {
-    setExpandedRows(prev => {
+    setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -49,17 +48,18 @@ export default function LdbViewer({ entries }: LdbViewerProps) {
       <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
         <div className="relative max-w-md w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-          <Input
+          <input
+            type="text"
             placeholder="Search content or hex..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-zinc-950 border-zinc-800 text-zinc-100 focus-visible:ring-emerald-500"
+            className="pl-10 pr-2 py-1 w-full rounded border border-zinc-800 bg-zinc-950 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
         </div>
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={showHex}
               onChange={(e) => setShowHex(e.target.checked)}
               className="rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
@@ -87,16 +87,26 @@ export default function LdbViewer({ entries }: LdbViewerProps) {
           </thead>
           <tbody className="divide-y divide-zinc-800">
             {filteredEntries.map((entry) => (
-              <>
-                <tr 
-                  key={entry.id}
+              <tbody key={entry.id}>
+                <tr
                   className="hover:bg-zinc-800/50 transition-colors cursor-pointer group"
                   onClick={() => toggleRow(entry.id)}
                 >
                   <td className="px-4 py-3">
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-500 hover:text-zinc-100">
-                      {expandedRows.has(entry.id) ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    </Button>
+                    <button
+                      type="button"
+                      className="h-6 w-6 text-zinc-500 hover:text-zinc-100 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleRow(entry.id);
+                      }}
+                    >
+                      {expandedRows.has(entry.id) ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-zinc-500 font-mono text-xs">
@@ -104,13 +114,17 @@ export default function LdbViewer({ entries }: LdbViewerProps) {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`
-                      inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide
-                      ${entry.type === 'JSON' ? 'bg-amber-500/10 text-amber-500' : 
-                        entry.type === 'URL' ? 'bg-blue-500/10 text-blue-500' :
-                        entry.type === 'Number' ? 'bg-purple-500/10 text-purple-500' :
-                        'bg-zinc-700/30 text-zinc-400'}
-                    `}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide ${
+                        entry.type === "JSON"
+                          ? "bg-amber-500/10 text-amber-500"
+                          : entry.type === "URL"
+                          ? "bg-blue-500/10 text-blue-500"
+                          : entry.type === "Number"
+                          ? "bg-purple-500/10 text-purple-500"
+                          : "bg-zinc-700/30 text-zinc-400"
+                      }`}
+                    >
                       {entry.type}
                     </span>
                   </td>
@@ -130,51 +144,55 @@ export default function LdbViewer({ entries }: LdbViewerProps) {
                     {entry.size}
                   </td>
                 </tr>
-                
+
                 {expandedRows.has(entry.id) && (
                   <tr className="bg-zinc-900/50">
                     <td colSpan={showHex ? 6 : 5} className="px-4 py-4">
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-zinc-500 uppercase tracking-wider">Full Content</span>
+                          <span className="text-xs text-zinc-500 uppercase tracking-wider">
+                            Full Content
+                          </span>
                           <div className="flex gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 text-xs text-zinc-400 hover:text-white"
+                            <button
+                              type="button"
+                              className="h-7 text-xs text-zinc-400 hover:text-white flex items-center gap-1"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 copyToClipboard(entry.content, entry.id);
                               }}
                             >
-                              {copiedId === entry.id ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                              {copiedId === entry.id ? (
+                                <Check className="w-3 h-3" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
                               Copy Text
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 text-xs text-zinc-400 hover:text-white"
+                            </button>
+                            <button
+                              type="button"
+                              className="h-7 text-xs text-zinc-400 hover:text-white flex items-center gap-1"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                copyToClipboard(entry.rawHex, entry.id + '-hex');
+                                copyToClipboard(entry.rawHex, entry.id + "-hex");
                               }}
                             >
-                              <Code className="w-3 h-3 mr-1" />
+                              <Code className="w-3 h-3" />
                               Copy Hex
-                            </Button>
+                            </button>
                           </div>
                         </div>
-                        
-                        {/* Decoded View */}
+
                         <div className="bg-zinc-950 border border-zinc-800 rounded p-4 overflow-x-auto">
                           <pre className="text-xs text-zinc-300 font-mono whitespace-pre-wrap break-all">
                             {entry.content}
                           </pre>
                         </div>
 
-                        {/* Raw Hex View */}
                         <div className="bg-zinc-950 border border-zinc-800 rounded p-4 overflow-x-auto">
-                          <div className="text-[10px] text-zinc-600 mb-2 uppercase">Raw Hex Dump</div>
+                          <div className="text-[10px] text-zinc-600 mb-2 uppercase">
+                            Raw Hex Dump
+                          </div>
                           <pre className="text-xs text-emerald-600/80 font-mono whitespace-pre-wrap break-all">
                             {entry.rawHex}
                           </pre>
@@ -183,7 +201,7 @@ export default function LdbViewer({ entries }: LdbViewerProps) {
                     </td>
                   </tr>
                 )}
-              </>
+              </tbody>
             ))}
           </tbody>
         </table>
