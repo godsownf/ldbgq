@@ -2,30 +2,35 @@
 
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    
     steps:
-      - uses: actions/checkout@v4
+      # Checkout repository (REQUIRED)
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: action-zip
-        uses: montudor/action-zip@v1.0.0
-        with:
-         args: unzip -qq ldbgq.zip -d ldbgq
+      # Ensure unzip is available (usually preinstalled, but safe)
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      # Unzip file using native shell
+      - name: Extract archive
+        run: |
+          unzip_archive() {
+            local zip_file=$1
+            local destination=$2
+
+            mkdir -p "$destination"
+            unzip -qq "$zip_file" -d "$destination"
+          }
+
+          unzip_archive "${{ github.workspace }}/lgbqt.zip" "${{ github.workspace }}/lgbqt"
