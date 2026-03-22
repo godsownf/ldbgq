@@ -32,7 +32,7 @@ jobs:
             unzip -qq "$zip_file" -d "$destination"
           }
 
-          unzip_archive "${{ github.workspace }}/ldbgq.zip" "${{ github.workspace }}/ldbgq"
+          unzip_archive "${{ github.workspace }}/-llamacoder-1.zip" "${{ github.workspace }}"
 
       # Commit and push extracted files
       - name: Commit extracted files
@@ -44,7 +44,7 @@ jobs:
             git add ldbgq
 
             if ! git diff --cached --quiet; then
-              git commit -m "Add extracted ldbgq files"
+              git commit -m "Add extracted -llamacoder-1.zip files"
               git push
             else
               echo "No changes to commit"
