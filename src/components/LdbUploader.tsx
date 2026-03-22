@@ -1,8 +1,7 @@
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { UploadCloud, FileText, XCircle } from "lucide-react";
-import { parseLdbFile } from "@/utils/ldbParser";
-import { LdbEntry } from "@/types";
+import { parseLdbFile } from "../utils/ldbParser";
+import { LdbEntry } from "../types";
 
 interface LdbUploaderProps {
   onFileLoaded: (entries: LdbEntry[], fileName: string, fileSize: number) => void;
@@ -18,7 +17,7 @@ export default function LdbUploader({ onFileLoaded }: LdbUploaderProps) {
     setIsLoading(true);
 
     try {
-      if (!file.name.endsWith('.ldb')) {
+      if (!file.name.endsWith(".ldb")) {
         throw new Error("Invalid file extension. Please select a .ldb file.");
       }
 
@@ -57,10 +56,10 @@ export default function LdbUploader({ onFileLoaded }: LdbUploaderProps) {
         className={`
           relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200
           ${isDragging 
-            ? 'border-emerald-500 bg-emerald-500/5' 
-            : 'border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50'
+            ? "border-emerald-500 bg-emerald-500/5" 
+            : "border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50"
           }
-          ${isLoading ? 'opacity-50 pointer-events-none' : ''}
+          ${isLoading ? "opacity-50 pointer-events-none" : ""}
         `}
       >
         <input
@@ -70,18 +69,18 @@ export default function LdbUploader({ onFileLoaded }: LdbUploaderProps) {
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isLoading}
         />
-        
+
         <div className="flex flex-col items-center gap-4">
           <div className={`
             p-4 rounded-full transition-colors
-            ${isDragging ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-400'}
+            ${isDragging ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-zinc-400"}
           `}>
             {isLoading ? <UploadCloud className="w-8 h-8 animate-pulse" /> : <FileText className="w-8 h-8" />}
           </div>
-          
+
           <div>
             <p className="text-lg font-medium text-zinc-200">
-              {isLoading ? 'Performing Deep Scan...' : 'Drop .ldb file here'}
+              {isLoading ? "Performing Deep Scan..." : "Drop .ldb file here"}
             </p>
             <p className="text-sm text-zinc-500 mt-1">
               Hybrid UTF-8/Latin-1 Decoder with Zero Data Loss
@@ -89,9 +88,13 @@ export default function LdbUploader({ onFileLoaded }: LdbUploaderProps) {
           </div>
 
           {!isLoading && (
-            <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+            <button
+              type="button"
+              onClick={() => document.querySelector<HTMLInputElement>("input[type=file]")?.click()}
+              className="border border-zinc-700 text-zinc-300 px-4 py-2 rounded hover:bg-zinc-800 transition"
+            >
               Select File
-            </Button>
+            </button>
           )}
         </div>
       </div>
