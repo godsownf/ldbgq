@@ -4,8 +4,9 @@
   "description": "LevelDB Parser running on Cloudflare Workers",
   "main": "src/main.tsx",
   "scripts": {
+    "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "deploy": "wrangler publish",
+    "publish": "wrangler publish",
     "tail": "wrangler tail"
   },
   "devDependencies": {
