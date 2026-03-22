@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Database, FileCode } from "lucide-react";
-import LdbUploader from "../components/LdbUploader";
-import LdbViewer from "../components/LdbViewer";
-import { LdbEntry } from "../types";
+import LdbUploader from "./components/LdbUploader";
+import LdbViewer from "./components/LdbViewer";
+import { LdbEntry } from "./types";
 
 function App() {
   const [entries, setEntries] = useState<LdbEntry[]>([]);
