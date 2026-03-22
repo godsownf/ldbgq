@@ -38,9 +38,6 @@ jobs:
       - name: Run linter
         run: deno lint
 
-      - name: Run add
-        run: deno add
-
       - name: Run run
         run: deno run
 
