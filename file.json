@@ -1,5 +1,5 @@
 {
-  "name": "session-vault-worker",
+  "name": "ldbgq",
   "version": "1.0.0",
   "description": "LevelDB Parser running on Cloudflare Workers",
   "main": "src/index.js",
