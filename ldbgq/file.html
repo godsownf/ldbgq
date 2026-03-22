@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SessionVault | Local Cookie Manager</title>
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --bg-primary: #020817;
+            --bg-secondary: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --border: #334155;
+            --radius: 0.75rem;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo svg { color: var(--accent); }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+
+        .btn-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        .btn-danger:hover { background-color: rgba(239, 68, 68, 0.2); }
+
+        .btn-ghost {
+            background-color: transparent;
+            color: var(--text-secondary);
+        }
+        .btn-ghost:hover { color: var(--text-primary); background-color: var(--bg-secondary); }
+
+        /* --- GRID & CARDS --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-domain {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .cookie-preview {
+            background-color: var(--bg-primary);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            transform: scale(0.95);
+            transition: transform 0.2s;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .modal-overlay.open .modal { transform: scale(1); }
+
+        .form-group { margin-bottom: 1.25rem; }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-textarea { min-height: 100px; resize: vertical; }
+
+        /* --- EMPTY STATE --- */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5; }
+
+        /* --- TOAST --- */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 200;
+        }
+
+        .toast {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease forwards;
+            min-width: 300px;
+        }
+
+        .toast.success { border-left: 4px solid #22c55e; }
+        .toast.error { border-left: 4px solid var(--danger); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                SessionVault
+            </div>
+            <button class="btn btn-primary" onclick="app.openModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Add Session
+            </button>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main id="session-grid" class="grid">
+            <!-- Content injected by JS -->
+        </main>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Add New Session</h2>
+            <form id="add-form" onsubmit="app.handleAdd(event)">
+                <div class="form-group">
+                    <label class="form-label">Session Name</label>
+                    <input type="text" class="form-input" id="input-name" placeholder="e.g. Personal Gmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Domain</label>
+                    <input type="text" class="form-input" id="input-domain" placeholder="e.g. accounts.google.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cookie String</label>
+                    <textarea class="form-textarea" id="input-cookies" placeholder="Paste your cookie string here..." required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" class="btn btn-ghost" onclick="app.closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        /**
+         * SessionVault - Advanced Single File Application
+         * Handles local storage, DOM manipulation, and user interactions.
+         */
+        const app = (() => {
+            // State
+            let sessions = [];
+            const STORAGE_KEY = 'session_vault_data';
+
+            // DOM Elements
+            const grid = document.getElementById('session-grid');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const toastContainer = document.getElementById('toast-container');
+            const form = document.getElementById('add-form');
+
+            // Icons (SVG Strings)
+            const icons = {
+                globe: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`,
+                copy: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
+                trash: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+                shield: `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>`
+            };
+
+            // --- Core Logic ---
+
+            function init() {
+                loadSessions();
+                render();
+            }
+
+            function loadSessions() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    sessions = stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    console.error("Failed to load sessions", e);
+                    sessions = [];
+                }
+            }
+
+            function saveSessions() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+                } catch (e) {
+                    showToast("Error saving to local storage", "error");
+                }
+            }
+
+            function render() {
+                grid.innerHTML = '';
+
+                if (sessions.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            ${icons.shield}
+                            <h3>No Sessions Found</h3>
+                            <p style="margin-top: 0.5rem; color: var(--text-secondary);">Your local vault is empty. Click "Add Session" to securely store your data.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Use DocumentFragment for performance
+                const fragment = document.createDocumentFragment();
+
+                sessions.forEach(session => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${escapeHtml(session.name)}</div>
+                                <div class="card-domain">${icons.globe} ${escapeHtml(session.domain)}</div>
+                            </div>
+                        </div>
+                        <div class="cookie-preview" title="${escapeHtml(session.cookies)}">
+                            ${escapeHtml(truncate(session.cookies, 60))}
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-ghost" style="flex:1" onclick="app.copyToClipboard('${session.id}')">
+                                ${icons.copy} Copy
+                            </button>
+                            <button class="btn btn-danger" onclick="app.deleteSession('${session.id}')">
+                                ${icons.trash}
+                            </button>
+                        </div>
+                    `;
+                    fragment.appendChild(card);
+                });
+
+                grid.appendChild(fragment);
+            }
+
+            // --- Actions ---
+
+            function handleAdd(e) {
+                e.preventDefault();
+                const name = document.getElementById('input-name').value.trim();
+                const domain = document.getElementById('input-domain').value.trim();
+                const cookies = document.getElementById('input-cookies').value.trim();
+
+                if (!name || !domain || !cookies) {
+                    showToast("Please fill in all fields", "error");
+                    return;
+                }
+
+                const newSession = {
+                    id: Date.now().toString(),
+                    name,
+                    domain,
+                    cookies,
+                    createdAt: new Date().toISOString()
+                };
+
+                sessions.unshift(newSession); // Add to top
+                saveSessions();
+                render();
+                closeModal();
+                form.reset();
+                showToast("Session saved successfully", "success");
+            }
+
+            function deleteSession(id) {
+                if (confirm("Are you sure you want to delete this session? This cannot be undone.")) {
+                    sessions = sessions.filter(s => s.id !== id);
+                    saveSessions();
+                    render();
+                    showToast("Session deleted", "success");
+                }
+            }
+
+            async function copyToClipboard(id) {
+                const session = sessions.find(s => s.id === id);
+                if (session) {
+                    try {
+                        await navigator.clipboard.writeText(session.cookies);
+                        showToast("Cookies copied to clipboard", "success");
+                    } catch (err) {
+                        showToast("Failed to copy", "error");
+                    }
+                }
+            }
+
+            // --- UI Utilities ---
+
+            function openModal() {
+                modalOverlay.classList.add('open');
+                document.getElementById('input-name').focus();
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('open');
+            }
+
+            // Close modal on outside click
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `<span>${message}</span>`;
+                
+                toastContainer.appendChild(toast);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease forwards';
+                    toast.addEventListener('animationend', () => {
+                        toast.remove();
+                    });
+                }, 3000);
+            }
+
+            // Security: Prevent XSS
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function truncate(str, n) {
+                return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
+            }
+
+            // Initialize App
+            init();
+
+            // Public API
+            return {
+                openModal,
+                closeModal,
+                handleAdd,
+                deleteSession,
+                copyToClipboard
+            };
+        })();
+    </script>
+</body>
+</html>
