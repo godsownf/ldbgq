@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      [main]
+      - main
   pull_request:
 
 jobs:
@@ -11,37 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
-      # 3️⃣ Install project dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 5️⃣ install shadn
-      - name: install shadn
-        run: npm install -D shadcn@latest add button card input tabs textarea label
-
-      # 4️⃣ Install Tailwind Animate plugin (needed for build)
-      - name: Install Tailwind Animate plugin
-        run: npm install -D tailwindcss-animate lucide-react clsx tailwind-merge class-variance-authority
-
-      # 5️⃣ Build project
       - name: Build project
         run: npm run build
 
-      # 6️⃣ Publish to Cloudflare Workers
       - name: Publish to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           environment: production
-          workingDirectory: ./  # root of project
+          workingDirectory: ./
