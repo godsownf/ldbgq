@@ -2,7 +2,7 @@
   "name": "ldbgq",
   "version": "1.0.0",
   "description": "LevelDB Parser running on Cloudflare Workers",
-  "main": "src/index.js",
+  "main": "src/index.html",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler publish",
