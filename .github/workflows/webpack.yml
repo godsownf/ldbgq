@@ -1,33 +1,43 @@
-name: NodeJS with Webpack
+name: Build and Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [22.x]
-
     steps:
-    - uses: actions/checkout@v4
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
+      # 2️⃣ Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-    - name: webpack
-      run: npm install -D webpack-cli
+      # 3️⃣ Install project dependencies
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build
-      run: |
-        npm install
-        npm fund
-        npx webpack
-        
+      # 4️⃣ Install Tailwind Animate plugin (needed for build)
+      - name: Install Tailwind Animate plugin
+        run: npm install -D tailwindcss-animate
+
+      # 5️⃣ Build project
+      - name: Build project
+        run: npm run build
+
+      # 6️⃣ Publish to Cloudflare Workers
+      - name: Publish to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v2
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          environment: production
+          workingDirectory: ./  # root of project
