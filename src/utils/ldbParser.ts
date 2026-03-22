@@ -1,4 +1,4 @@
-import { LdbEntry } from "../types";
+import { LdbEntry } from "@/types";
 
 /**
  * Robust Text Island Scanner & Hybrid Decoder.
