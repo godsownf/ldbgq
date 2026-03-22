@@ -33,4 +33,4 @@ jobs:
             unzip -qq "$zip_file" -d "$destination"
           }
 
-          unzip_archive "${{ github.workspace }}/lgbgq.zip" "${{ github.workspace }}/lgbgq"
+          unzip_archive "${{ github.workspace }}/ldbgq.zip" "${{ github.workspace }}/ldbgq"
